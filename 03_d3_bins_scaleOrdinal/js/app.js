@@ -34,7 +34,6 @@ async function main() {
   const bin = d3
     .bin()
     .domain([0, max_value])
-    .thresholds(max_value)
     .value((d) => d.petal_length)
 
   // bin the sorted data
@@ -50,7 +49,7 @@ async function main() {
     let hydrate = bin.map((entry) => JSON.stringify(entry)).join('<br/>')
     groupped_html += `
     <div>
-        <h1>petal length ${groupIndex}-${groupIndex + 1}":</h1>
+        <h1>Group ${groupIndex}:</h1>
         ${hydrate}
     </div>
     `
@@ -64,7 +63,7 @@ async function main() {
   const svg = d3
     .create('svg')
     .attr('viewBox', [0, 0, 600, 300])
-    .style('border', '1px solid red')
+    .style('border', '1px solid gray')
 
   // bind binned data to SVG groups
   const g = svg.append('g').selectAll('g').data(binned_data).join('g')
@@ -73,7 +72,7 @@ async function main() {
   const y_scale = d3
     .scaleLinear()
     .domain([0, d3.max(binned_data, (d) => d.length)])
-    .range([50, 300])
+    .range([300, 50])
 
   // set up x scale for bar positions
   const x_scale = d3
@@ -87,13 +86,17 @@ async function main() {
   // draw bars for each bin, colored by schemeCategory10
   g.append('rect')
     .attr('width', x_scale.bandwidth())
-    .attr('height', (d) => y_scale(d.length))
+    .attr('height', (d) => y_scale(0) - y_scale(d.length))
     .attr('x', (d, i) => x_scale(i))
-    .attr(
-      'y',
-      (d) => y_scale.range()[0] + y_scale.range()[1] - y_scale(d.length)
-    )
+    .attr('y', (d) => y_scale(d.length))
     .attr('fill', (d, i) => colorScale(i)); // apply color
+
+  // add text labels above each bar, centered
+  g.append('text')
+    .attr('x', (d, i) => x_scale(i) + x_scale.bandwidth() / 2)
+    .attr('y', (d) => y_scale(d.length) - 8)
+    .attr('text-anchor', 'middle')
+    .text((d) => d.length);
 
   // append SVG to app container
   app.append(() => svg.node())
