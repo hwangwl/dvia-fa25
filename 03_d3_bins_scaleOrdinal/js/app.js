@@ -1,21 +1,22 @@
 async function main() {
+  // select the app container
   const app = d3.select('#app')
 
-  // fetch csv data https://en.wikipedia.org/wiki/Iris_flower_data_set
+  // fetch csv data
   const data = await d3.csv('./data/iris.csv')
   console.log(data)
 
-  // fetch plain text data
+  // you can fetch any kind of data
   const data_text = await d3.text('./data/helloWorld.txt')
   console.log(data_text)
 
-  // compute min and max petal length
+  // value of longest petal value
   const min_value = d3.min(data, (d) => d.petal_length)
   const max_value = d3.max(data, (d) => d.petal_length)
   console.log('max value')
   console.log(max_value)
 
-  // find index of max petal length
+  // index of longest petal value
   const max_index = d3.maxIndex(data, (d) => d.petal_length)
   console.log('max index')
   console.log(max_index)
@@ -45,11 +46,12 @@ async function main() {
   let groupped_html = ``
 
   binned_data.forEach((bin, groupIndex) => {
-    let hydrate = bin.map((entry) => JSON.stringify(entry))
+    // hydrate: join JSON strings with <br/> for readability
+    let hydrate = bin.map((entry) => JSON.stringify(entry)).join('<br/>')
     groupped_html += `
     <div>
-      <h2>Petal length group ${groupIndex}:</h2>
-      ${hydrate}
+        <h1>petal length ${groupIndex}-${groupIndex + 1}":</h1>
+        ${hydrate}
     </div>
     `
   })
@@ -79,22 +81,19 @@ async function main() {
     .domain(binned_data.map((d, i) => i))
     .range([0, 600])
 
-  // draw bars for each bin
+  // use schemeCategory10 for bar colors
+  const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+  // draw bars for each bin, colored by schemeCategory10
   g.append('rect')
-    .attr('width', x_scale.bandwidth)
+    .attr('width', x_scale.bandwidth())
     .attr('height', (d) => y_scale(d.length))
     .attr('x', (d, i) => x_scale(i))
     .attr(
       'y',
       (d) => y_scale.range()[0] + y_scale.range()[1] - y_scale(d.length)
     )
-
-  // add text labels for each bar, centered and larger font
-  g.append('text')
-    .attr('x', (d, i) => x_scale(i) + x_scale.bandwidth() / 2) // center in bin
-    .attr('y', (d) => y_scale.range()[0] + y_scale.range()[1] - y_scale(d.length) - 10) // above bar
-    .attr('text-anchor', 'middle') // center text
-    .text((d) => d.length)
+    .attr('fill', (d, i) => colorScale(i)); // apply color
 
   // append SVG to app container
   app.append(() => svg.node())
