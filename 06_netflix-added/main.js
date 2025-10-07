@@ -34,7 +34,7 @@ function displayMetadata(csv) {
   // create a heading tag that will be the object title
   card.append('h2')
     .attr('class', 'title')
-    .text(d => d.title);
+    .text(d => d.name);
 
   // create a paragraph with original date string
   card.append('p')
